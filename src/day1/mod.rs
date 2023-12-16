@@ -1,3 +1,5 @@
+// Solutions for https://adventofcode.com/2023/day/1
+
 const FILE_RADIX: u32 = 10; // digits in file are decimal numbers (Base10)
 
 // all possible number words

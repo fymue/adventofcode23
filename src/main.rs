@@ -3,6 +3,7 @@ use std::process::exit;
 use std::{fs::File, io::Read};
 
 mod day1;
+mod day2;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -35,6 +36,10 @@ fn main() {
         1 => match aoc_puzzle_of_day {
             1 => day1::puzzle1(file_content),
             2 => day1::puzzle2(file_content),
+            _ => invalid_puzzle_num_str
+        },
+        2 => match aoc_puzzle_of_day {
+            1 => day2::puzzle1(file_content),
             _ => invalid_puzzle_num_str
         },
         _ => String::from("Invalid AOC day number")
