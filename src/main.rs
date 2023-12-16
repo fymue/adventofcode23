@@ -1,5 +1,6 @@
 use std::env;
 use std::process::exit;
+use std::{fs::File, io::Read};
 
 mod day1;
 
@@ -22,9 +23,18 @@ fn main() {
 
     let invalid_puzzle_num_str: String = String::from("Invalid puzzle number");
 
+    let mut input_file: File =
+        File::open(input_file_path).expect(
+            &format!("Couldn't open input file '{}'!", input_file_path));
+
+    let mut file_content: String = String::new();
+    input_file.read_to_string(&mut file_content).expect(
+        &format!("Couldn't read input file '{}'!", input_file_path));
+
     let result: String = match aoc_day {
         1 => match aoc_puzzle_of_day {
-            1 => day1::day1_puzzle1(input_file_path),
+            1 => day1::puzzle1(file_content),
+            2 => day1::puzzle2(file_content),
             _ => invalid_puzzle_num_str
         },
         _ => String::from("Invalid AOC day number")
