@@ -40,6 +40,7 @@ fn main() {
         },
         2 => match aoc_puzzle_of_day {
             1 => day2::puzzle1(file_content),
+            2 => day2::puzzle2(file_content),
             _ => invalid_puzzle_num_str
         },
         _ => String::from("Invalid AOC day number")
