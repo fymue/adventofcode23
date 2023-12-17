@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+#[derive(Eq, Hash, PartialEq)]
 struct Field {
     line : usize,   // line/row of the field
     column: usize,  // column of the field
@@ -11,16 +14,12 @@ struct PartNumber {
 impl PartNumber {
     fn has_adjacent_symbol(&self, lines: &Vec<&str>) -> bool {
         for field in &self.adjacent_fields {
-            // get line of adjacent field
-            let line: &[u8] = lines[field.line].as_bytes();
-
-            // get character of adjacent field
-            let chr: u8 = line[field.column];
+            let symbol: u8 = get_symbol_from_line(field, lines);
 
             // check if the current adjacent field is a valid
             // symbol (not a number and not a dot '.');
             // if so, return true immediately
-            if !chr.is_ascii_digit() && chr != b'.' {
+            if !symbol.is_ascii_digit() && symbol != b'.' {
                 return true;
             }
         }
@@ -53,16 +52,61 @@ pub fn puzzle1(file_content: String) -> String {
             if part_number.has_adjacent_symbol(&file_lines) {
                 engine_part_sum += part_number.num;
             }
-        }
+        }        
     }
 
     return engine_part_sum.to_string();
 }
 
 pub fn puzzle2(file_content: String) -> String {
-    let mut engine_part_sum: u32 = 0;
+    const GEAR_SYMBOL: u8 = b'*';
+    let mut potential_gears: HashMap<Field, Vec<u32>> = HashMap::new();
 
-    return engine_part_sum.to_string();
+    // collect all lines of file into vector, trimming off whitespace
+    // and skipping empty lines
+    let file_lines: Vec<&str> =
+        file_content.split("\n").map(|l| l.trim()).
+            filter(|l| !l.is_empty()).collect();
+
+    for (i, line) in file_lines.iter().enumerate() {
+        if line.is_empty() {  // skip empty lines
+            continue;
+        }
+
+        // get all part numbers of the current line
+        let part_numbers: Vec<PartNumber> = get_part_numbers(&file_lines, i);
+
+        // iterate over all part numbers of current line and check if it
+        // has an adjacent symbol; if so, add part number to total sum
+        for part_number in part_numbers {
+            for field in part_number.adjacent_fields {
+                // get symbol of current field
+                let curr_symbol: u8 = get_symbol_from_line(&field, &file_lines);
+
+                // if current symbol is a gear ('*'), add it to the gear map
+                // and add the current part number to its adjacent number list
+                if curr_symbol == GEAR_SYMBOL {
+                    match potential_gears.get_mut(&field) {
+                        Some(num_map) => num_map.push(part_number.num),
+
+                        // if the gear isn't part of the map yet,
+                        // add it to the map and add the current
+                        // part number to its adjacent number list
+                        None =>
+                            match potential_gears.insert(
+                                field, vec![part_number.num]) {
+                                    Some(_) => (),
+                                    None => (),
+                            }
+                    }
+                }
+            }
+        }
+    }
+
+    let gear_ration_sum: u32 = calc_gear_ratio_sum(potential_gears);
+
+    return gear_ration_sum.to_string();
 }
 
 // get all part numbers of the current line
@@ -137,4 +181,32 @@ fn get_adjacent_fields(
     }
 
     return adjacent_fields;
+}
+
+// return the symbol/character of a Field object
+fn get_symbol_from_line(field: &Field, lines: &Vec<&str>) -> u8 {
+    // get line of adjacent field
+    let line: &[u8] = lines[field.line].as_bytes();
+
+    // get character of adjacent field
+    let symbol: u8 = line[field.column];
+
+    return symbol;
+}
+
+// calculate the gear ration sum
+fn calc_gear_ratio_sum(potential_gears: HashMap<Field, Vec<u32>>) -> u32 {
+    const GEAR_PARTS: usize = 2;
+
+    let mut gear_ration_sum: u32 = 0;
+
+    for (_gear, part_numbers) in potential_gears {
+        let is_gear: bool = part_numbers.len() == GEAR_PARTS;
+
+        if is_gear {
+            gear_ration_sum += part_numbers[0] * part_numbers[1];
+        }
+    }
+
+    return gear_ration_sum;
 }
