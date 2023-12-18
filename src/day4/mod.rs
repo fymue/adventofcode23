@@ -1,4 +1,4 @@
-// Solutions for https://adventofcode.com/2023/day/4
+// Solutions to https://adventofcode.com/2023/day/4
 
 use std::collections::HashSet;
 
