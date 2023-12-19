@@ -2,9 +2,9 @@
 
 mod helpers;
 
-use crate::day1::helpers::get_first_number_char;
-use crate::day1::helpers::get_first_number_word;
-use crate::day1::helpers::get_last_number_word;
+use helpers::get_first_number_char;
+use helpers::get_first_number_word;
+use helpers::get_last_number_word;
 
 pub fn puzzle1(file_content: String) -> String {
     let mut total_sum: u32 = 0;

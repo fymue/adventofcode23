@@ -2,9 +2,9 @@
 
 mod helpers;
 
-use crate::day2::helpers::get_gameid;
-use crate::day2::helpers::is_game_possible;
-use crate::day2::helpers::calc_power_of_minimum_cubeset;
+use helpers::get_gameid;
+use helpers::is_game_possible;
+use helpers::calc_power_of_minimum_cubeset;
 
 pub fn puzzle1(file_content: String) -> String {
     let mut gameid_sum: u32 = 0;

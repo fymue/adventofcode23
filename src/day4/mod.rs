@@ -4,13 +4,13 @@ use std::collections::HashSet;
 
 mod helpers;
 
-use crate::day4::helpers::NUMBER_DELIMITER;
+use helpers::NUMBER_DELIMITER;
 
-use crate::day4::helpers::strip_cardid;
-use crate::day4::helpers::get_winning_numbers;
-use crate::day4::helpers::get_drawn_numbers_str;
-use crate::day4::helpers::collect_won_scratchcards;
-use crate::day4::helpers::count_total_scratchcards;
+use helpers::strip_cardid;
+use helpers::get_winning_numbers;
+use helpers::get_drawn_numbers_str;
+use helpers::collect_won_scratchcards;
+use helpers::count_total_scratchcards;
 
 pub fn puzzle1(file_content: String) -> String {
     let mut total_points: u32 = 0;

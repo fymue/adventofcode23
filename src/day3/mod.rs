@@ -4,11 +4,11 @@ use std::collections::HashMap;
 
 mod helpers;
 
-use crate::day3::helpers::PartNumber;
-use crate::day3::helpers::Field;
-use crate::day3::helpers::get_part_numbers;
-use crate::day3::helpers::get_symbol_from_line;
-use crate::day3::helpers::calc_gear_ratio_sum;
+use helpers::PartNumber;
+use helpers::Field;
+use helpers::get_part_numbers;
+use helpers::get_symbol_from_line;
+use helpers::calc_gear_ratio_sum;
 
 pub fn puzzle1(file_content: String) -> String {
     let mut engine_part_sum: u32 = 0;
