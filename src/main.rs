@@ -55,6 +55,7 @@ fn main() {
 
         4 => match aoc_puzzle_of_day {
             1 => day4::puzzle1(file_content),
+            2 => day4::puzzle2(file_content),
             _ => invalid_puzzle_num_str,
         },
 
