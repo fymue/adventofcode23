@@ -9,16 +9,16 @@ pub fn puzzle1(file_content: String) -> String {
 
     let seed_to_soil_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_seed_to_soil_map(&lines);
-    
+
     let soil_to_fertilizer_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_soil_to_fertilizer_map(&lines);
 
     let fertilizer_to_water_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_fertilizer_to_water_map(&lines);
-    
+
     let water_to_light_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_water_to_light_map(&lines);
-    
+
     let light_to_temperature_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_light_to_temperature_map(&lines);
 
@@ -39,13 +39,13 @@ pub fn puzzle1(file_content: String) -> String {
 
         let water_number: u64 = helpers::map_number(
             fertilizer_number, &fertilizer_to_water_map);
-    
+
         let light_number: u64 = helpers::map_number(
             water_number, &water_to_light_map);
 
         let temperature_number: u64 = helpers::map_number(
             light_number, &light_to_temperature_map);
-        
+
         let humidity_number: u64 = helpers::map_number(
             temperature_number, &temperature_to_humidity_map);
 
@@ -67,16 +67,16 @@ pub fn puzzle2(file_content: String) -> String {
 
     let seed_to_soil_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_seed_to_soil_map(&lines);
-    
+
     let soil_to_fertilizer_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_soil_to_fertilizer_map(&lines);
 
     let fertilizer_to_water_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_fertilizer_to_water_map(&lines);
-    
+
     let water_to_light_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_water_to_light_map(&lines);
-    
+
     let light_to_temperature_map: (Vec<i64>, Vec<Range<u64>>) =
         helpers::get_light_to_temperature_map(&lines);
 
@@ -98,13 +98,13 @@ pub fn puzzle2(file_content: String) -> String {
 
             let water_number: u64 = helpers::map_number(
                 fertilizer_number, &fertilizer_to_water_map);
-        
+
             let light_number: u64 = helpers::map_number(
                 water_number, &water_to_light_map);
 
             let temperature_number: u64 = helpers::map_number(
                 light_number, &light_to_temperature_map);
-            
+
             let humidity_number: u64 = helpers::map_number(
                 temperature_number, &temperature_to_humidity_map);
 

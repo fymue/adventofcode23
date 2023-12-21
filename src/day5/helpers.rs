@@ -147,7 +147,7 @@ fn parse_map(line_id: &str, lines: &Vec<&str>) ->
 
     let map_start_idx: usize =
         find_line_idx(line_id, &lines).unwrap() + 1;
-    
+
     let mut i: usize = map_start_idx;
     let mut line: &str = lines[i];
 
