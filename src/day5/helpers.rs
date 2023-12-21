@@ -1,13 +1,41 @@
 use std::ops::Range;
 
 const NUMBER_DELIMITER: &str = " ";
-const END_OF_BLOCK_DELIMITER: &str = "\n";
+const SEED_ID: &str = "seeds: ";
+
+// get all the seed ranges from the seed input line
+pub fn get_seed_ranges(lines: &Vec<&str>) -> Vec<Range<u64>> {
+    assert!(find_line_idx(SEED_ID, &lines).is_some());
+
+    let seed_line_idx: usize = find_line_idx(SEED_ID, &lines).unwrap();
+    let seed_line: &str = lines[seed_line_idx];
+
+    let mut seed_ranges: Vec<Range<u64>> = Vec::new();
+
+    let seed_line_without_id: &str = seed_line.strip_prefix(SEED_ID).unwrap();
+
+    let seed_vals: Vec<u64> = seed_line_without_id.split(
+        NUMBER_DELIMITER).map(|s| s.trim().parse().unwrap()).collect();
+    assert!(seed_vals.len() % 2 == 0);
+
+    let mut seed_val_idx: usize = 0;
+
+    while seed_val_idx < seed_vals.len() {
+        let seed_val: u64 = seed_vals[seed_val_idx];
+        let seed_range: u64 = seed_vals[seed_val_idx+1];
+
+        seed_ranges.push(seed_val..seed_val+seed_range);
+
+        seed_val_idx += 2;
+    }
+
+    return seed_ranges;
+}
 
 // get all seeds for which we need to find the lowest location number
 pub fn get_seeds(lines: &Vec<&str>) -> Vec<u64> {
-    const SEED_ID: &str = "seeds: ";
-
     assert!(find_line_idx(SEED_ID, &lines).is_some());
+
     let seed_line_idx: usize = find_line_idx(SEED_ID, &lines).unwrap();
     let seed_line: &str = lines[seed_line_idx];
 
@@ -74,6 +102,7 @@ pub fn get_humidity_to_location_map(lines: &Vec<&str>) ->
     return parse_map(HUMIDITY_TO_LOCATION_ID, lines);
 }
 
+// pass a number through one of the previously read maps
 pub fn map_number(num: u64, maps: &(Vec<i64>, Vec<Range<u64>>)) -> u64 {
     match __map_number(num, maps) {
         Some(mapped_num) => mapped_num,
@@ -81,12 +110,13 @@ pub fn map_number(num: u64, maps: &(Vec<i64>, Vec<Range<u64>>)) -> u64 {
     }
 }
 
+// internal generic function to pass a number through one of the maps;
+// function returns Option for case when provided number isn't part
+// of any of the ranges of the provided map
 fn __map_number(num: u64, maps: &(Vec<i64>, Vec<Range<u64>>)) -> Option<u64> {
     for (i, map) in maps.1.iter().enumerate() {
         if map.contains(&num) {
             let offset: i64 = maps.0[i];
-
-            assert!(num as i64 + offset > 0);
             let mapped_number: u64 = (num as i64 + offset) as u64;
 
             return Some(mapped_number);
@@ -108,6 +138,9 @@ fn find_line_idx(line_id: &str, lines: &Vec<&str>) -> Option<usize> {
     return None;
 }
 
+// parse a map from the input file and collect all source number ranges as
+// Range structs in a vector; the destination maps are merely stores as
+// an offset from the source maps
 fn parse_map(line_id: &str, lines: &Vec<&str>) ->
     (Vec<i64>, Vec<Range<u64>>)  {
     assert!(find_line_idx(line_id, &lines).is_some());
@@ -138,7 +171,7 @@ fn parse_map(line_id: &str, lines: &Vec<&str>) ->
         destination_offsets.push(destination_offset);
 
         source_ranges.push(
-            source_range_start as u64..(source_range_start+range_len) as u64);
+            source_range_start as u64..(source_range_start + range_len) as u64);
 
         i += 1;
         line = lines[i];
