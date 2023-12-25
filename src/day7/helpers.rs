@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::cmp::Ordering;
 
+const VALID_CARDS: [char; 13] =
+    ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
 enum Rank {
     FiveOfKind  = 7,
@@ -99,7 +102,6 @@ pub struct Hand<'a> {
     hand: &'a str,
     bid: u32,
     rank: Rank,
-    hand_strength: u32,
 }
 
 impl Ord for Hand<'_> {
@@ -128,23 +130,33 @@ impl Hand<'_> {
     // check if hand is stronger than the other hand if they
     // both share the same rank (i.e. both hands contain 2 pairs)
     fn is_hand_stronger(&self, other: &Hand) -> bool {
-        return self.hand_strength > other.hand_strength;
+        let rank_map: HashMap<char, u8> = get_card_ranks();
+
+        for (self_card, other_card) in
+            self.hand.chars().zip(other.hand.chars()) {
+            if self_card != other_card {
+                return rank_map[&self_card] > rank_map[&other_card];
+            }
+        }
+
+        assert!(self.hand != other.hand);
+        return false;
     }
 }
 
-pub fn parse_hand<'a> (
-    line: &'a str, rank_map: &HashMap<char, u32>) -> Hand<'a> {
+pub fn parse_hand<'a> (line: &'a str) -> Hand<'a> {
     const DELIMITER: &str = " ";
 
     assert!(line.find(DELIMITER).is_some());
     let delimiter_idx: usize = line.find(DELIMITER).unwrap();
 
     let hand: &str = &line[0..delimiter_idx];
+    assert!(is_valid_hand(hand));
+
     let bid: u32 = (&line[delimiter_idx+1..]).parse().unwrap();
     let rank: Rank = get_rank(hand);
-    let hand_strength: u32 = calc_hand_strength(hand, rank_map);
 
-    return Hand{hand: hand, bid: bid, rank: rank, hand_strength: hand_strength};
+    return Hand{hand: hand, bid: bid, rank: rank};
 }
 
 pub fn calc_total_winnings(ranked_hands: &Vec<Hand>) -> u32 {
@@ -187,6 +199,7 @@ fn count_cards(hand: &str) -> (HashMap<char, u8>, u8) {
 
     for card in hand.chars() {
         let entry: Option<&mut u8> = card_counts.get_mut(&card);
+
         if entry.is_some() {
             let count: &mut u8 = entry.unwrap();
             *count += 1;
@@ -202,14 +215,27 @@ fn count_cards(hand: &str) -> (HashMap<char, u8>, u8) {
     return (card_counts, highest_card_count);
 }
 
-fn calc_hand_strength(hand: &str, rank_map: &HashMap<char, u32>) -> u32 {
-    let total_cards: usize = hand.len();
-    let mut hand_strength: u32 = 0;
+fn is_valid_hand(hand: &str) -> bool {
+    return hand.chars().all(|c| VALID_CARDS.contains(&c));
+}
 
-    for (i, card) in hand.chars().enumerate() {
-        let weight_of_card: u32 = (total_cards - i) as u32;
-        hand_strength += rank_map[&card] * weight_of_card;
-    }
+#[inline(always)]
+fn get_card_ranks() -> HashMap<char, u8> {
+    let rank_map: HashMap<char, u8> = HashMap::from([
+        ('2', 1),
+        ('3', 2),
+        ('4', 3),
+        ('5', 4),
+        ('6', 5),
+        ('7', 6),
+        ('8', 7),
+        ('9', 8),
+        ('T', 9),
+        ('J', 10),
+        ('Q', 11),
+        ('K', 12),
+        ('A', 13),
+    ]);
 
-    return hand_strength;
+    return rank_map;
 }
