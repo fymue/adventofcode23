@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use helpers::Hand;
 
 pub fn puzzle1(file_content: String) -> String {
-    let rank_map: HashMap<char, u8> = HashMap::from([
+    let rank_map: HashMap<char, u32> = HashMap::from([
         ('2', 1),
         ('3', 2),
         ('4', 3),
@@ -24,10 +24,11 @@ pub fn puzzle1(file_content: String) -> String {
 
     for mut line in file_content.split("\n") {
         line = line.trim();
-        hands.push(helpers::parse_hand(line));
+        hands.push(helpers::parse_hand(line, &rank_map));
     }
 
     hands.sort();
+    println!("{:?}", hands);
 
     let total_winnings: u32 = helpers::calc_total_winnings(&hands);
 
