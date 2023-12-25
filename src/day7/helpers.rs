@@ -17,37 +17,82 @@ enum Rank {
 
 impl Rank {
     // check if all cards are equal (since a consists of exaclty 5 cards)
-    fn is_five_of_kind(hand: &str) -> bool {
-        let mut hand = hand.bytes();
-        let first_chr: u8 = hand.next().unwrap();
-        return hand.all(|c| c == first_chr);
-    }
+    fn is_five_of_kind(hand: &str, with_joker: bool) -> bool {
+        let (counts, high_count): (HashMap<char, u8>, u8) = count_cards(hand);
 
-    // if highest card count is 4, remaining card is irrelevant
-    fn is_four_of_kind(hand: &str) -> bool {
-        let (_counts, high_count): (HashMap<char, u8>, u8) = count_cards(hand);
+        if high_count == 5 {
+            return true;
+        } else {
+            if with_joker {
+                let joker_count: Option<&u8> = counts.get(&'J');
 
-        return high_count == 4;
-    }
+                if joker_count.is_some() {
+                    let joker_count: u8 = *joker_count.unwrap();
 
-    fn is_three_of_kind(hand: &str) -> bool {
-        let (counts, _high_count): (HashMap<char, u8>, u8) = count_cards(hand);
-
-        let mut pair_count: u8 = 0;
-        let mut triplet_count: u8 = 0;
-
-        for (_card, count) in counts {
-            if count == 2 {
-                pair_count += 1;
-            } else if count == 3 {
-                triplet_count += 1;
+                    for (card, count) in counts {
+                        if card != 'J' && joker_count + count == 5 {
+                            return true;
+                        }
+                    }
+                }
             }
+
         }
 
-        return triplet_count == 1 && pair_count == 0;
+        return false;
     }
 
-    fn is_full_house(hand: &str) -> bool {
+    fn is_four_of_kind(hand: &str, with_joker: bool) -> bool {
+        let (counts, high_count): (HashMap<char, u8>, u8) = count_cards(hand);
+
+        if high_count == 4 {
+            return true;
+        } else {
+            if with_joker {
+                let joker_count: Option<&u8> = counts.get(&'J');
+
+                if joker_count.is_some() {
+                    let joker_count: u8 = *joker_count.unwrap();
+
+                    for (card, count) in counts {
+                        if card != 'J' && joker_count + count == 4 {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return false;
+    }
+
+    fn is_three_of_kind(hand: &str, with_joker: bool) -> bool {
+        let (counts, high_count): (HashMap<char, u8>, u8) =
+            count_cards(hand);
+
+            if high_count == 3 {
+                return true;
+            } else {
+                if with_joker {
+                    let joker_count: Option<&u8> = counts.get(&'J');
+    
+                    if joker_count.is_some() {
+                        let joker_count: u8 = *joker_count.unwrap();
+    
+                        for (card, count) in counts {
+                            if card != 'J' && joker_count + count == 3 {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        
+        return false;
+    }
+
+    fn is_full_house(hand: &str, with_joker: bool) -> bool {
         let (counts, _high_count): (HashMap<char, u8>, u8) = count_cards(hand);
 
         let mut pair_count: u8 = 0;
@@ -64,7 +109,7 @@ impl Rank {
         return triplet_count == 1 && pair_count == 1;
     }
 
-    fn is_two_pair(hand: &str) -> bool {
+    fn is_two_pair(hand: &str, with_joker: bool) -> bool {
         let (counts, _high_count): (HashMap<char, u8>, u8) = count_cards(hand);
 
         let mut pair_count: u8 = 0;
@@ -79,21 +124,39 @@ impl Rank {
     }
 
     // if highest card count is 2, all other cards must be different
-    fn is_single_pair(hand: &str) -> bool {
+    fn is_single_pair(hand: &str, with_joker: bool) -> bool {
         let (counts, _high_count): (HashMap<char, u8>, u8) = count_cards(hand);
 
-        let mut pair_count: u8 = 0;
-        let mut triplet_count: u8 = 0;
+        if with_joker {
+            let joker_count = counts.get(&'J');
 
-        for (_card, count) in counts {
-            if count == 2 {
-                pair_count += 1;
-            } else if count == 3 {
-                triplet_count += 1;
+            // count the number of jokers
+            let joker_count: u8 = if joker_count.is_some() {
+                *joker_count.unwrap()
+            } else {
+                0
+            };
+
+            // hand is single pair if all cards have a count of 1
+            // (meaning the hand is currently of rank HighCard)
+            // and we have 1 joker available to make either card a single pair
+            return counts.iter().all(|(k, v)| *v == 1) && joker_count == 1;
+        } else {
+            let mut pair_count: u8 = 0;
+            let mut triplet_count: u8 = 0;
+
+            for (_card, count) in counts {
+                if count == 2 {
+                    pair_count += 1;
+                } else if count == 3 {
+                    triplet_count += 1;
+                }
             }
-        }
 
-        return pair_count == 1 && triplet_count == 0;
+            // hand is single pair if we have 1 single pair
+            // and no triplets (which would make the hand a full house)
+            return pair_count == 1 && triplet_count == 0;
+        }
     }
 }
 
@@ -144,7 +207,7 @@ impl Hand<'_> {
     }
 }
 
-pub fn parse_hand<'a> (line: &'a str) -> Hand<'a> {
+pub fn parse_hand<'a> (line: &'a str, with_joker: bool) -> Hand<'a> {
     const DELIMITER: &str = " ";
 
     assert!(line.find(DELIMITER).is_some());
@@ -154,7 +217,7 @@ pub fn parse_hand<'a> (line: &'a str) -> Hand<'a> {
     assert!(is_valid_hand(hand));
 
     let bid: u32 = (&line[delimiter_idx+1..]).parse().unwrap();
-    let rank: Rank = get_rank(hand);
+    let rank: Rank = get_rank(hand, with_joker);
 
     return Hand{hand: hand, bid: bid, rank: rank};
 }
@@ -172,18 +235,18 @@ pub fn calc_total_winnings(ranked_hands: &Vec<Hand>) -> u32 {
     return total_winnings;
 }
 
-fn get_rank(hand: &str) -> Rank {
-    let rank: Rank = if Rank::is_five_of_kind(hand) {
+fn get_rank(hand: &str, with_joker: bool) -> Rank {
+    let rank: Rank = if Rank::is_five_of_kind(hand, with_joker) {
         Rank::FiveOfKind
-    } else if Rank::is_four_of_kind(hand) {
+    } else if Rank::is_four_of_kind(hand, with_joker) {
         Rank::FourofKind
-    } else if Rank::is_full_house(hand) {
+    } else if Rank::is_full_house(hand, with_joker) {
         Rank::FullHouse
-    } else if Rank::is_three_of_kind(hand) {
+    } else if Rank::is_three_of_kind(hand, with_joker) {
         Rank::ThreeOfKind
-    } else if Rank::is_two_pair(hand) {
+    } else if Rank::is_two_pair(hand, with_joker) {
         Rank::TwoPair
-    } else if Rank::is_single_pair(hand) {
+    } else if Rank::is_single_pair(hand, with_joker) {
         Rank::SinglePair
     } else {
         Rank::HighCard
