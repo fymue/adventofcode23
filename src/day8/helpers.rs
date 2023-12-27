@@ -163,28 +163,39 @@ pub fn calc_total_steps_puzzle2(
     network: &Vec<JumpNodes>,
     start_nodes: Vec<usize>,
     end_nodes: Vec<usize>) -> u64 {
-    let mut total_steps: u64 = 0;
-
-    let mut current_nodes: Vec<usize> = start_nodes;  // start with start nodes
-
     // index to track the current direction (either left or right)
     let mut direction_idx: usize = 0;
+    let mut steps_per_node: Vec<u64> = Vec::new();
 
-    // while current_nodes != end_nodes {
-    while current_nodes != end_nodes {
-        // direction is either 0 ('L') or 1 ('R')
-        let direction: usize = directions[direction_idx] as usize;
+    for node in start_nodes {
+        let mut current_node: usize = node;
+        let mut steps: u64 = 0;
 
-        // jump to next node location
-        update_current_nodes(&mut current_nodes, direction, &network);
+        let found_end_node = |node: usize| end_nodes.contains(&node);
 
-        total_steps += 1;
-
-        direction_idx += 1;
-        // if we've processed all direction steps, start from the beginning
-        if direction_idx == directions.len() {
-            direction_idx = 0;
+        while !found_end_node(current_node) {
+            // direction is either 0 ('L') or 1 ('R')
+            let direction: usize = directions[direction_idx] as usize;
+    
+            // jump to next node location
+            current_node = network[current_node][direction];
+            steps += 1;
+    
+            direction_idx += 1;
+            // if we've processed all direction steps, start from the beginning
+            if direction_idx == directions.len() {
+                direction_idx = 0;
+            }
         }
+
+        steps_per_node.push(steps);
+    }
+
+    // calculate total steps by finding the least common multiple (LCM)
+    // of the needed steps of all starting nodes
+    let mut total_steps: u64 = 1;
+    for steps in steps_per_node {
+        total_steps = lcm(total_steps, steps);
     }
 
     return total_steps;
@@ -196,11 +207,19 @@ fn get_destination_idx(node_locations: &HashMap<&str, usize>) -> usize {
     return node_locations[END_NODE];
 }
 
-fn update_current_nodes(
-    current_nodes: &mut Vec<usize>,
-    direction: usize,
-    network: &Vec<JumpNodes>){
-    for node in current_nodes {
-        *node = network[*node][direction];
+// calculate greatest common divisor (GCD) of two numbers
+// (needed to calculate least common multiplier (LCM))
+fn gcd(a: u64, b: u64) -> u64 {
+    if b == 0 {
+        return a;
     }
+
+    return gcd(b, a % b);
+}
+
+// calculate least common multiplier (LCM) of two numbers
+// (needed to find the total steps needed to go to all end nodes
+//  from all start nodes in the network)
+fn lcm(a: u64, b: u64) -> u64 {
+    return (a / gcd(a, b)) * b; 
 }
