@@ -1,4 +1,4 @@
-use std::{collections::HashMap, thread::current};
+use std::collections::HashMap;
 
 pub type JumpNodes = [usize; 2];
 
@@ -47,10 +47,38 @@ pub fn map_node_locations(file: &str) -> HashMap<&str, usize> {
         }
     }
 
-    assert!(nodes.contains_key(START_NODE));
-    assert!(nodes.contains_key(END_NODE));
-
     return nodes;
+}
+
+pub fn get_start_end_nodes(file: &str) -> (Vec<usize>, Vec<usize>) {
+    let mut start_nodes: Vec<usize> = Vec::new();
+    let mut end_nodes: Vec<usize> = Vec::new();
+    let mut node_counter: usize = 0;
+
+    for mut line in file.split("\n") {
+        line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+
+        let location_delimiter: Option<usize> = line.find(LOCATION_DELIMITER);
+        let has_location: bool = location_delimiter.is_some();
+
+        if has_location {
+            let location_delimiter_idx: usize = location_delimiter.unwrap();
+            let node: &str = &line[..location_delimiter_idx];
+
+            if node.ends_with("A") {
+                start_nodes.push(node_counter);
+            } else if node.ends_with("Z") {
+                end_nodes.push(node_counter);
+            }
+
+            node_counter += 1;
+        }
+    }
+
+    return (start_nodes, end_nodes);
 }
 
 // parse all nodes and record the index of every
@@ -99,7 +127,7 @@ pub fn parse_network(
     return network;
 }
 
-pub fn calc_total_steps(
+pub fn calc_total_steps_puzzle1(
     directions: &Vec<u8>,
     node_locations: &HashMap<&str, usize>,
     network: &Vec<JumpNodes>) -> u32 {
@@ -130,8 +158,49 @@ pub fn calc_total_steps(
     return total_steps;
 }
 
+pub fn calc_total_steps_puzzle2(
+    directions: &Vec<u8>,
+    network: &Vec<JumpNodes>,
+    start_nodes: Vec<usize>,
+    end_nodes: Vec<usize>) -> u64 {
+    let mut total_steps: u64 = 0;
+
+    let mut current_nodes: Vec<usize> = start_nodes;  // start with start nodes
+
+    // index to track the current direction (either left or right)
+    let mut direction_idx: usize = 0;
+
+    // while current_nodes != end_nodes {
+    while current_nodes != end_nodes {
+        // direction is either 0 ('L') or 1 ('R')
+        let direction: usize = directions[direction_idx] as usize;
+
+        // jump to next node location
+        update_current_nodes(&mut current_nodes, direction, &network);
+
+        total_steps += 1;
+
+        direction_idx += 1;
+        // if we've processed all direction steps, start from the beginning
+        if direction_idx == directions.len() {
+            direction_idx = 0;
+        }
+    }
+
+    return total_steps;
+}
+
 // returns the index of the destination/end node "ZZZ" in the network vector
 fn get_destination_idx(node_locations: &HashMap<&str, usize>) -> usize {
     assert!(node_locations.contains_key(END_NODE));
     return node_locations[END_NODE];
+}
+
+fn update_current_nodes(
+    current_nodes: &mut Vec<usize>,
+    direction: usize,
+    network: &Vec<JumpNodes>){
+    for node in current_nodes {
+        *node = network[*node][direction];
+    }
 }
