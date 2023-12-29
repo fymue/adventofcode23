@@ -11,6 +11,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day10;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -91,6 +92,11 @@ fn main() {
         9 => match aoc_puzzle_of_day {
             1 => day9::puzzle1(file_content),
             2 => day9::puzzle2(file_content),
+            _ => invalid_puzzle_num_str,
+        },
+
+        10 => match aoc_puzzle_of_day {
+            1 => day10::puzzle1(file_content),
             _ => invalid_puzzle_num_str,
         },
 
